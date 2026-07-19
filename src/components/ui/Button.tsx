@@ -16,7 +16,7 @@ interface ButtonProps extends NativeButtonProps {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "bg-accent text-[#1a1204] hover:bg-[#ffb43e] shadow-[0_0_0_1px_var(--color-accent-dim)] disabled:opacity-40 disabled:hover:bg-accent",
+    "bg-accent text-[#1a1204] hover:brightness-110 shadow-[0_0_0_1px_var(--color-accent-dim)] disabled:opacity-40 disabled:hover:brightness-100",
   secondary:
     "bg-surface text-text border border-border-strong hover:border-accent/50 hover:bg-surface-hover",
   ghost: "bg-transparent text-muted hover:text-text hover:bg-surface",

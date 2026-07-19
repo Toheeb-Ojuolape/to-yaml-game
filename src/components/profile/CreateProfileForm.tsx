@@ -50,7 +50,7 @@ export function CreateProfileForm({ onCancel, showCancel }: { onCancel: () => vo
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={20}
-              placeholder="e.g. Ada"
+              placeholder="e.g. Tobi"
               className="w-full rounded-lg border border-border bg-bg-raised px-3.5 py-2.5 text-sm text-text placeholder:text-faint outline-none transition-colors focus:border-accent/60"
             />
           </div>

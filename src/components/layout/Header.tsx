@@ -1,10 +1,13 @@
 import { NavLink } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Braces, Flame, Repeat, Sparkles } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Braces, Flame, Moon, Repeat, Sparkles, Sun } from "lucide-react";
 import { useProfile } from "../../context/ProfileContext";
+import { useTheme } from "../../hooks/useTheme";
+import { IconButton } from "../ui/IconButton";
 
 export function Header() {
   const { activeProfile, switchProfile } = useProfile();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/85 backdrop-blur-md">
@@ -25,12 +28,34 @@ export function Header() {
           </nav>
         </div>
 
-        {activeProfile && (
-          <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3">
+          {activeProfile && (
             <div className="hidden items-center gap-3 sm:flex">
               <Stat icon={<Sparkles size={14} />} value={activeProfile.xp} label="XP" />
               <Stat icon={<Flame size={14} />} value={activeProfile.streak} label="streak" />
             </div>
+          )}
+
+          <IconButton
+            label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            onClick={toggleTheme}
+            className="overflow-hidden"
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={theme}
+                initial={{ opacity: 0, rotate: -60, scale: 0.6 }}
+                animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                exit={{ opacity: 0, rotate: 60, scale: 0.6 }}
+                transition={{ duration: 0.2 }}
+                className="flex"
+              >
+                {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+              </motion.span>
+            </AnimatePresence>
+          </IconButton>
+
+          {activeProfile && (
             <button
               onClick={() => switchProfile("")}
               className="flex items-center gap-2 rounded-full border border-border bg-surface py-1 pl-1 pr-3 text-sm text-text transition-colors hover:border-border-strong cursor-pointer"
@@ -42,8 +67,8 @@ export function Header() {
               <span className="hidden max-w-[8rem] truncate font-medium sm:inline">{activeProfile.name}</span>
               <Repeat size={13} className="text-faint" />
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <nav className="flex items-center gap-1 border-t border-border px-4 py-1.5 sm:hidden">

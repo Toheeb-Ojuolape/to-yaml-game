@@ -3,10 +3,10 @@ import { tokenizeJson } from "../../lib/highlight";
 import type { TokenType } from "../../lib/highlight";
 
 const TOKEN_CLASS: Record<TokenType, string> = {
-  key: "text-[#7dd3fc]",
-  string: "text-[#a7e0b0]",
-  number: "text-[#f5a623]",
-  boolean: "text-[#c9a3f5]",
+  key: "text-syntax-key",
+  string: "text-syntax-string",
+  number: "text-syntax-number",
+  boolean: "text-syntax-boolean",
   null: "text-faint",
   punct: "text-muted",
   plain: "text-muted",

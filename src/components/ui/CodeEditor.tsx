@@ -53,7 +53,7 @@ export function CodeEditor({ value, onChange, shake, disabled, placeholder }: Co
         spellCheck={false}
         autoCapitalize="off"
         autoCorrect="off"
-        placeholder={placeholder ?? 'username: "arclight"\nactive: true'}
+        placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         onScroll={handleScroll}
         onKeyDown={handleKeyDown}

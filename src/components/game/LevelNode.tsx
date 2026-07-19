@@ -1,19 +1,19 @@
 import { motion } from "framer-motion";
 import { ArrowLeftRight, Lock, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { Sample } from "../../types";
+import type { LevelMeta } from "../../types";
 import { tierMeta, tierTint } from "./TierBadge";
 
 interface LevelNodeProps {
-  sample: Sample;
+  slot: LevelMeta;
   unlocked: boolean;
   stars?: 1 | 2 | 3;
   index: number;
 }
 
-export function LevelNode({ sample, unlocked, stars, index }: LevelNodeProps) {
+export function LevelNode({ slot, unlocked, stars, index }: LevelNodeProps) {
   const navigate = useNavigate();
-  const color = tierMeta(sample.tier).color;
+  const color = tierMeta(slot.tier).color;
   const completed = Boolean(stars);
 
   return (
@@ -25,14 +25,14 @@ export function LevelNode({ sample, unlocked, stars, index }: LevelNodeProps) {
       whileHover={unlocked ? { y: -3, scale: 1.03 } : undefined}
       whileTap={unlocked ? { scale: 0.97 } : undefined}
       disabled={!unlocked}
-      onClick={() => navigate(`/play/${sample.id}`)}
+      onClick={() => navigate(`/play/${slot.id}`)}
       className={`group relative flex w-full flex-col items-center gap-2 rounded-2xl border p-4 text-center transition-colors ${
         unlocked
           ? "border-border bg-surface hover:border-border-strong hover:bg-surface-hover cursor-pointer"
           : "border-border-strong/70 bg-surface cursor-not-allowed"
       }`}
     >
-      {sample.direction === "yamlToJson" && (
+      {slot.direction === "yamlToJson" && (
         <span className="text-faint absolute top-2 right-2" title="YAML → JSON">
           <ArrowLeftRight size={11} />
         </span>
@@ -54,7 +54,7 @@ export function LevelNode({ sample, unlocked, stars, index }: LevelNodeProps) {
           completed ? (
             <Star size={17} fill={color} strokeWidth={0} />
           ) : (
-            sample.id
+            slot.id
           )
         ) : (
           <Lock size={15} />
@@ -62,7 +62,7 @@ export function LevelNode({ sample, unlocked, stars, index }: LevelNodeProps) {
       </span>
 
       <span className={`line-clamp-1 text-xs font-medium ${unlocked ? "text-text" : "text-muted"}`}>
-        {sample.title}
+        {slot.title}
       </span>
 
       {completed && (

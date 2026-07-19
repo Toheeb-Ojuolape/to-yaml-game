@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate, useParams, Navigate, Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, CircleAlert, RotateCcw } from "lucide-react";
-import { sampleForLevel } from "../../data/samples";
+import { resolveLevel, slotForLevel } from "../../data/samples";
 import { useProfile } from "../../context/ProfileContext";
 import { jsonToYaml, safeJsonParse, yamlToJson } from "../../lib/yaml";
 import { deepEqual } from "../../lib/deepEqual";
@@ -16,19 +16,20 @@ import { Button } from "../ui/Button";
 
 export function PlayScreen() {
   const { levelId } = useParams();
-  const sample = sampleForLevel(Number(levelId));
+  const slot = slotForLevel(Number(levelId));
   const { isUnlocked } = useProfile();
 
-  if (!sample || !isUnlocked(sample.id)) {
+  if (!slot || !isUnlocked(slot.id)) {
     return <Navigate to="/play" replace />;
   }
 
-  return <PlayScreenInner key={sample.id} sampleId={sample.id} />;
+  return <PlayScreenInner key={slot.id} slotId={slot.id} />;
 }
 
-function PlayScreenInner({ sampleId }: { sampleId: number }) {
+function PlayScreenInner({ slotId }: { slotId: number }) {
   const navigate = useNavigate();
-  const sample = sampleForLevel(sampleId)!;
+  // Generated once per mount, so re-entering (or replaying) a level draws a fresh question.
+  const [sample] = useState(() => resolveLevel(slotId)!);
   const { recordLevelComplete } = useProfile();
   const isReverse = sample.direction === "yamlToJson";
 
@@ -43,7 +44,7 @@ function PlayScreenInner({ sampleId }: { sampleId: number }) {
     () => (isReverse ? JSON.stringify(sample.json, null, 2) : jsonToYaml(sample.json)).split("\n"),
     [sample, isReverse]
   );
-  const nextSample = sampleForLevel(sample.id + 1);
+  const nextSlot = slotForLevel(sample.id + 1);
 
   function triggerShake() {
     setShake(true);
@@ -185,8 +186,8 @@ function PlayScreenInner({ sampleId }: { sampleId: number }) {
           <ResultOverlay
             stars={result.stars}
             xp={result.xp}
-            hasNext={Boolean(nextSample)}
-            onNext={() => nextSample && navigate(`/play/${nextSample.id}`)}
+            hasNext={Boolean(nextSlot)}
+            onNext={() => nextSlot && navigate(`/play/${nextSlot.id}`)}
             onBackToMap={() => navigate("/play")}
           />
         )}

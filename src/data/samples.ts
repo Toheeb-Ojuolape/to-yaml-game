@@ -1,36 +1,94 @@
-import type { Sample } from "../types";
+import type { LevelSlot, Sample } from "../types";
+import type { Rng } from "../lib/rng";
+import { pick, pickN, randBool, randFloat, randInt, titleCase } from "../lib/rng";
+import {
+  ADJECTIVES,
+  CITIES,
+  COLOR_NOUNS,
+  DB_ADAPTERS,
+  DISH_NOUNS,
+  FIRST_NAMES,
+  HOBBIES,
+  IMAGE_NAMES,
+  INGREDIENTS,
+  LAST_NAMES,
+  MOOD_NOUNS,
+  NODE_VERSIONS,
+  NOUNS,
+  PACKAGE_NAMES,
+  PRODUCT_SKUS,
+  ROOMS,
+  TAG_WORDS,
+  TEAM_NAMES,
+  TRACK_NAMES,
+  WEATHER_CONDITIONS,
+} from "./pools";
 
-export const samples: Sample[] = [
+function twoWord(rng: Rng, a: readonly string[], b: readonly string[]) {
+  return `${titleCase(pick(rng, a))} ${titleCase(pick(rng, b))}`;
+}
+
+function personName(rng: Rng) {
+  return `${pick(rng, FIRST_NAMES)} ${pick(rng, LAST_NAMES)}`;
+}
+
+function hexColor(rng: Rng) {
+  return `#${randInt(rng, 0, 0xffffff).toString(16).padStart(6, "0")}`;
+}
+
+function determinant3x3(m: number[][]): number {
+  return (
+    m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+    m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+    m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0])
+  );
+}
+
+export const levelSlots: LevelSlot[] = [
   // ── Novice: flat objects, 2-4 keys, primitives only ──
   {
     id: 1,
     title: "User handle",
     tier: "novice",
-    json: { business: "acme", is_registered: true },
+    generate: (rng) => ({
+      json: { business: twoWord(rng, ADJECTIVES, NOUNS), is_registered: randBool(rng) },
+    }),
   },
   {
     id: 2,
     title: "RGB color",
     tier: "novice",
-    json: { name: "Sunset Orange", hex: "#ff7043" },
+    generate: (rng) => ({
+      json: { name: twoWord(rng, ADJECTIVES, COLOR_NOUNS), hex: hexColor(rng) },
+    }),
   },
   {
     id: 3,
     title: "Point in space",
     tier: "novice",
-    json: { x: 12, y: -4, z: 0 },
+    generate: (rng) => ({
+      json: { x: randInt(rng, -50, 50), y: randInt(rng, -50, 50), z: randInt(rng, -50, 50) },
+    }),
   },
   {
     id: 4,
     title: "Light switch",
     tier: "novice",
-    json: { room: "kitchen", on: false, brightness: 80 },
+    generate: (rng) => ({
+      json: { room: pick(rng, ROOMS), on: randBool(rng), brightness: randInt(rng, 0, 100) },
+    }),
   },
   {
     id: 5,
     title: "Book stub",
     tier: "novice",
-    json: { title: "Dune", author: "Frank Herbert", year: 1965 },
+    generate: (rng) => ({
+      json: {
+        title: twoWord(rng, ADJECTIVES, NOUNS),
+        author: personName(rng),
+        year: randInt(rng, 1900, 2024),
+      },
+    }),
   },
 
   // ── Apprentice: one nesting level, one array of primitives, nulls ──
@@ -38,56 +96,64 @@ export const samples: Sample[] = [
     id: 6,
     title: "Product listing",
     tier: "apprentice",
-    json: {
-      sku: "TSHIRT-BLK-M",
-      price: 24.99,
-      inStock: true,
-      tags: ["apparel", "cotton", "unisex"],
-    },
+    generate: (rng) => ({
+      json: {
+        sku: `${pick(rng, ["TSHIRT", "MUG", "HAT", "BAG", "PEN", "BOOK"])}-${pick(rng, ["BLK", "WHT", "RED", "BLU"])}-${pick(rng, ["S", "M", "L", "XL"])}`,
+        price: randFloat(rng, 4.99, 199.99),
+        inStock: randBool(rng),
+        tags: pickN(rng, TAG_WORDS, 3),
+      },
+    }),
   },
   {
     id: 7,
     title: "Blog post",
     tier: "apprentice",
-    json: {
-      slug: "hello-world",
-      published: true,
-      views: 1042,
-      editor: null,
-    },
+    generate: (rng) => ({
+      json: {
+        slug: `${pick(rng, ADJECTIVES)}-${pick(rng, NOUNS)}`,
+        published: randBool(rng),
+        views: randInt(rng, 0, 50000),
+        editor: null,
+      },
+    }),
   },
   {
     id: 8,
     title: "Feature flags",
     tier: "apprentice",
-    json: {
-      service: "checkout",
-      flags: {
-        darkMode: true,
-        betaCheckout: false,
+    generate: (rng) => ({
+      json: {
+        service: pick(rng, TEAM_NAMES).toLowerCase(),
+        flags: { darkMode: randBool(rng), betaCheckout: randBool(rng) },
+        rolloutPercent: randInt(rng, 0, 100),
       },
-    },
+    }),
   },
   {
     id: 9,
     title: "Playlist",
     tier: "apprentice",
-    json: {
-      name: "Focus",
-      tracks: ["Clair de Lune", "Weightless", "River Flows in You"],
-      shuffle: false,
-    },
+    generate: (rng) => ({
+      json: {
+        name: twoWord(rng, ADJECTIVES, MOOD_NOUNS),
+        tracks: pickN(rng, TRACK_NAMES, 3),
+        shuffle: randBool(rng),
+      },
+    }),
   },
   {
     id: 10,
     title: "Weather reading",
     tier: "apprentice",
-    json: {
-      city: "Lagos",
-      tempC: 29.5,
-      condition: "Humid",
-      alerts: null,
-    },
+    generate: (rng) => ({
+      json: {
+        city: pick(rng, CITIES),
+        tempC: randFloat(rng, -5, 42, 1),
+        condition: pick(rng, WEATHER_CONDITIONS),
+        alerts: null,
+      },
+    }),
   },
 
   // ── Expert: nested objects, arrays of objects, mixed types, empty edge cases ──
@@ -95,64 +161,68 @@ export const samples: Sample[] = [
     id: 11,
     title: "Order summary",
     tier: "expert",
-    json: {
-      orderId: "A-2291",
-      customer: { name: "Wale Adisa", vip: true },
-      items: [
-        { sku: "MUG-01", qty: 2 },
-        { sku: "PEN-07", qty: 1 },
-      ],
-    },
+    generate: (rng) => ({
+      json: {
+        orderId: `${pick(rng, ["A", "B", "C", "D"])}-${randInt(rng, 1000, 9999)}`,
+        customer: { name: personName(rng), vip: randBool(rng) },
+        items: pickN(rng, PRODUCT_SKUS, 2).map((sku) => ({ sku, qty: randInt(rng, 1, 5) })),
+      },
+    }),
   },
   {
     id: 12,
     title: "Address book entry",
     tier: "expert",
-    json: {
-      contact: "Nkechi Obi",
-      phones: ["+234-801-555-0142"],
-      address: {
-        city: "Abuja",
-        zip: "900001",
+    generate: (rng) => ({
+      json: {
+        contact: personName(rng),
+        phones: [`+234-${randInt(rng, 700, 909)}-555-${randInt(rng, 1000, 9999)}`],
+        address: { city: pick(rng, CITIES), zip: String(randInt(rng, 100000, 999999)) },
+        notes: [],
       },
-      notes: [],
-    },
+    }),
   },
   {
     id: 13,
     title: "Server health",
     tier: "expert",
-    json: {
-      host: "api-03",
-      status: "degraded",
-      metrics: { cpu: 0.82, memory: 0.61 },
-      lastIncident: null,
-      tags: [],
-    },
+    generate: (rng) => ({
+      json: {
+        host: `${pick(rng, ["api", "web", "db", "cache", "worker"])}-${randInt(rng, 1, 20)}`,
+        status: pick(rng, ["healthy", "degraded", "down"]),
+        metrics: { cpu: randFloat(rng, 0, 1, 2), memory: randFloat(rng, 0, 1, 2) },
+        lastIncident: null,
+        tags: [],
+      },
+    }),
   },
   {
     id: 14,
     title: "Recipe",
     tier: "expert",
-    json: {
-      name: "Jollof Rice",
-      servings: 4,
-      ingredients: [
-        { item: "rice", amount: "3 cups" },
-        { item: "tomato", amount: "6" },
-      ],
-      vegetarian: true,
-    },
+    generate: (rng) => ({
+      json: {
+        name: `${titleCase(pick(rng, ADJECTIVES))} ${pick(rng, DISH_NOUNS)}`,
+        servings: randInt(rng, 1, 12),
+        ingredients: pickN(rng, INGREDIENTS, 2),
+        vegetarian: randBool(rng),
+      },
+    }),
   },
   {
     id: 15,
     title: "Team roster",
     tier: "expert",
-    json: {
-      team: "Platform",
-      lead: { name: "Ifeoma Chukwu", email: "ifeoma@example.com" },
-      members: ["Tobi", "Sade", "Chidi"],
-      openRoles: 0,
+    generate: (rng) => {
+      const lead = personName(rng);
+      return {
+        json: {
+          team: pick(rng, TEAM_NAMES),
+          lead: { name: lead, email: `${lead.split(" ")[0].toLowerCase()}@example.com` },
+          members: pickN(rng, FIRST_NAMES, 3),
+          openRoles: randInt(rng, 0, 5),
+        },
+      };
     },
   },
 
@@ -161,208 +231,301 @@ export const samples: Sample[] = [
     id: 16,
     title: "API response",
     tier: "master",
-    json: {
-      status: 200,
-      data: {
-        user: {
-          id: 88,
-          bio: "Backend engineer: loves Go & coffee",
-          social: { twitter: "@arclight", github: null },
+    generate: (rng) => {
+      const [hobbyA, hobbyB] = pickN(rng, HOBBIES, 2);
+      const role = pick(rng, [
+        "Backend engineer",
+        "Frontend engineer",
+        "Platform engineer",
+        "Data engineer",
+        "DevOps engineer",
+      ]);
+      const handle = `${pick(rng, ADJECTIVES)}${pick(rng, NOUNS)}`;
+      return {
+        json: {
+          status: pick(rng, [200, 201, 404, 500, 403]),
+          data: {
+            user: {
+              id: randInt(rng, 1, 999),
+              bio: `${role}: loves ${hobbyA} & ${hobbyB}`,
+              social: { twitter: `@${handle}`, github: randBool(rng) ? handle : null },
+            },
+            permissions: pickN(rng, ["read", "write", "admin", "delete"], 2),
+          },
+          meta: {
+            requestId: `${pick(rng, ["a1", "b2", "c3", "d4", "e5"])}-${randInt(rng, 10, 99)}`,
+            cached: randBool(rng),
+          },
         },
-        permissions: ["read", "write"],
-      },
-      meta: { requestId: "f3d9-01", cached: false },
+      };
     },
   },
   {
     id: 17,
     title: "CI pipeline",
     tier: "master",
-    json: {
-      pipeline: "deploy-prod",
-      triggers: ["push", "tag"],
-      jobs: [
-        { name: "build", steps: ["install", "compile"] },
-        { name: "test", steps: ["unit", "integration"] },
-      ],
-      env: { NODE_ENV: "production", DEBUG: false },
-    },
+    generate: (rng) => ({
+      json: {
+        pipeline: `${pick(rng, ["deploy", "build", "release", "publish"])}-${pick(rng, ["prod", "staging", "dev"])}`,
+        triggers: pickN(rng, ["push", "tag", "pull_request", "schedule"], 2),
+        jobs: [
+          { name: "build", steps: pickN(rng, ["install", "compile", "lint", "bundle"], 2) },
+          { name: "test", steps: pickN(rng, ["unit", "integration", "e2e", "smoke"], 2) },
+        ],
+        env: { NODE_ENV: pick(rng, ["production", "staging"]), DEBUG: randBool(rng) },
+      },
+    }),
   },
   {
     id: 18,
     title: "File tree",
     tier: "master",
-    json: {
-      name: "src",
-      type: "directory",
-      children: [
-        { name: "index.ts", type: "file", size: 512 },
-        {
-          name: "lib",
+    generate: (rng) => {
+      const ext = pick(rng, ["ts", "js", "py", "go", "rs"]);
+      const rootName = pick(rng, ["src", "lib", "app", "core"]);
+      const subDir = pick(rng, ["lib", "utils", "helpers", "shared"]);
+      const [fileA, fileB] = pickN(rng, NOUNS, 2).map((n) => `${n}.${ext}`);
+      return {
+        json: {
+          name: rootName,
           type: "directory",
-          children: [{ name: "yaml.ts", type: "file", size: 1203 }],
+          children: [
+            { name: fileA, type: "file", size: randInt(rng, 128, 4096) },
+            {
+              name: subDir,
+              type: "directory",
+              children: [{ name: fileB, type: "file", size: randInt(rng, 128, 4096) }],
+            },
+          ],
         },
-      ],
+      };
     },
   },
   {
     id: 19,
     title: "Matrix grid",
     tier: "master",
-    json: {
-      label: "identity-3x3",
-      rows: [
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 0, 1],
-      ],
-      determinant: 1,
+    generate: (rng) => {
+      const rows = [
+        [randInt(rng, -3, 3), randInt(rng, -3, 3), randInt(rng, -3, 3)],
+        [randInt(rng, -3, 3), randInt(rng, -3, 3), randInt(rng, -3, 3)],
+        [randInt(rng, -3, 3), randInt(rng, -3, 3), randInt(rng, -3, 3)],
+      ];
+      return {
+        json: {
+          label: `${pick(rng, ["sample", "test", "custom", "random"])}-3x3`,
+          rows,
+          determinant: determinant3x3(rows),
+        },
+      };
     },
   },
   {
     id: 20,
     title: "Invoice",
     tier: "master",
-    json: {
-      invoiceNo: "INV-3321",
-      billTo: {
-        name: "Chidinma & Co.",
-        note: 'Ref: "Q3 contract"',
-      },
-      lineItems: [
-        { desc: "Consulting", hours: 12.5, rate: 85 },
-        { desc: "Support", hours: -2, rate: 85 },
-      ],
-      totalDue: 867.5,
-      paid: false,
+    generate: (rng) => {
+      const company = twoWord(rng, ADJECTIVES, NOUNS);
+      const [desc1, desc2] = pickN(rng, ["Consulting", "Support", "Design", "Development", "Training"], 2);
+      const hours1 = randFloat(rng, 1, 40, 1);
+      const hours2 = randFloat(rng, -5, 40, 1);
+      const rate = randInt(rng, 50, 150);
+      const totalDue = Math.round((hours1 + hours2) * rate * 100) / 100;
+      return {
+        json: {
+          invoiceNo: `INV-${randInt(rng, 1000, 9999)}`,
+          billTo: { name: `${company} & Co.`, note: `Ref: "Q${randInt(rng, 1, 4)} contract"` },
+          lineItems: [
+            { desc: desc1, hours: hours1, rate },
+            { desc: desc2, hours: hours2, rate },
+          ],
+          totalDue,
+          paid: randBool(rng),
+        },
+      };
     },
   },
+
   // ── Config Reader: real-world GitHub Actions & Docker Compose YAML, shown as YAML → JSON ──
   {
     id: 21,
     title: "CI trigger",
     tier: "reader",
     direction: "yamlToJson",
-    json: {
-      name: "CI",
-      on: { push: { branches: ["main"] } },
-      jobs: {
-        build: {
-          "runs-on": "ubuntu-latest",
-          steps: [{ uses: "actions/checkout@v4" }, { run: "npm test" }],
+    generate: (rng) => {
+      const workflowName = pick(rng, ["CI", "Build", "Test Suite", "Pipeline", "Checks"]);
+      const branch = pick(rng, ["main", "master", "develop", "release", "trunk"]);
+      const testCmd = pick(rng, [
+        "npm test",
+        "npm run test",
+        "pytest",
+        "make test",
+        "yarn test",
+        "go test ./...",
+      ]);
+      const jobName = pick(rng, ["build", "ci", "test", "verify"]);
+      const runsOn = pick(rng, ["ubuntu-latest", "ubuntu-22.04", "macos-latest"]);
+      const checkoutVersion = pick(rng, ["v3", "v4"]);
+      const json = {
+        name: workflowName,
+        on: { push: { branches: [branch] } },
+        jobs: {
+          [jobName]: {
+            "runs-on": runsOn,
+            steps: [{ uses: `actions/checkout@${checkoutVersion}` }, { run: testCmd }],
+          },
         },
-      },
-    },
-    yaml: `name: CI
+      };
+      const yaml = `name: ${workflowName}
 on:
   push:
     branches:
-      - main
+      - ${branch}
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  ${jobName}:
+    runs-on: ${runsOn}
     steps:
-      - uses: actions/checkout@v4
-      - run: npm test`,
+      - uses: actions/checkout@${checkoutVersion}
+      - run: ${testCmd}`;
+      return { json, yaml };
+    },
   },
   {
     id: 22,
     title: "Compose service",
     tier: "reader",
     direction: "yamlToJson",
-    json: {
-      version: "3.8",
-      services: {
-        web: {
-          image: "nginx:latest",
-          ports: ["80:80"],
-          environment: { NODE_ENV: "production" },
+    generate: (rng) => {
+      const image = pick(rng, IMAGE_NAMES);
+      const tag = pick(rng, ["latest", "alpine", "1.0", "2.4", "stable"]);
+      const port = pick(rng, [80, 8080, 3000, 5000, 9000]);
+      const env = pick(rng, ["production", "development", "staging", "test"]);
+      const composeVersion = pick(rng, ["3.8", "3.9", "3.7"]);
+      const json = {
+        version: composeVersion,
+        services: {
+          web: { image: `${image}:${tag}`, ports: [`${port}:${port}`], environment: { NODE_ENV: env } },
         },
-      },
-    },
-    yaml: `version: "3.8"
+      };
+      const yaml = `version: "${composeVersion}"
 services:
   web:
-    image: nginx:latest
+    image: ${image}:${tag}
     ports:
-      - "80:80"
+      - "${port}:${port}"
     environment:
-      NODE_ENV: production`,
+      NODE_ENV: ${env}`;
+      return { json, yaml };
+    },
   },
   {
     id: 23,
     title: "Matrix build",
     tier: "reader",
     direction: "yamlToJson",
-    json: {
-      jobs: {
-        test: {
-          "runs-on": "ubuntu-latest",
-          strategy: { matrix: { "node-version": [18, 20, 22] } },
-          steps: [{ uses: "actions/setup-node@v4", with: { "node-version": "${{ matrix.node-version }}" } }],
+    generate: (rng) => {
+      const versions = pickN(rng, NODE_VERSIONS, 3);
+      const runsOn = pick(rng, ["ubuntu-latest", "ubuntu-22.04"]);
+      const jobName = pick(rng, ["test", "build", "ci"]);
+      const json = {
+        jobs: {
+          [jobName]: {
+            "runs-on": runsOn,
+            strategy: { matrix: { "node-version": versions } },
+            steps: [
+              { uses: "actions/setup-node@v4", with: { "node-version": "${{ matrix.node-version }}" } },
+            ],
+          },
         },
-      },
-    },
-    yaml: `jobs:
-  test:
-    runs-on: ubuntu-latest
+      };
+      const yaml = `jobs:
+  ${jobName}:
+    runs-on: ${runsOn}
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [${versions.join(", ")}]
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: \${{ matrix.node-version }}`,
+          node-version: \${{ matrix.node-version }}`;
+      return { json, yaml };
+    },
   },
   {
     id: 24,
     title: "Compose network",
     tier: "reader",
     direction: "yamlToJson",
-    json: {
-      services: {
-        api: {
-          image: "myapp/api:1.0",
-          depends_on: ["db"],
-          volumes: ["db_data:/var/lib/data"],
+    generate: (rng) => {
+      const apiImage = pick(rng, ["myapp/api", "acme/api", "backend/service", "core/api", "platform/api"]);
+      const apiTag = pick(rng, ["1.0", "2.1", "latest", "stable"]);
+      const dbImage = pick(rng, ["postgres:16", "mysql:8", "mongo:7", "postgres:15", "mariadb:11"]);
+      const volumeName = pick(rng, ["db_data", "app_data", "cache_data", "pg_data"]);
+      const mountPath = pick(rng, ["/var/lib/data", "/data", "/var/lib/postgresql/data", "/mnt/data"]);
+      const json = {
+        services: {
+          api: {
+            image: `${apiImage}:${apiTag}`,
+            depends_on: ["db"],
+            volumes: [`${volumeName}:${mountPath}`],
+          },
+          db: { image: dbImage },
         },
-        db: { image: "postgres:16" },
-      },
-      volumes: { db_data: null },
-    },
-    yaml: `services:
+        volumes: { [volumeName]: null },
+      };
+      const yaml = `services:
   api:
-    image: myapp/api:1.0
+    image: ${apiImage}:${apiTag}
     depends_on:
       - db
     volumes:
-      - db_data:/var/lib/data
+      - ${volumeName}:${mountPath}
   db:
-    image: postgres:16
+    image: ${dbImage}
 volumes:
-  db_data:`,
+  ${volumeName}:`;
+      return { json, yaml };
+    },
   },
   {
     id: 25,
     title: "Conditional step",
     tier: "reader",
     direction: "yamlToJson",
-    json: {
-      steps: [
-        {
-          name: "Notify on failure",
-          if: "failure()",
-          env: { SLACK_WEBHOOK: "${{ secrets.SLACK_WEBHOOK }}" },
-          run: "curl -X POST $SLACK_WEBHOOK",
-        },
-      ],
-    },
-    yaml: `steps:
-  - name: Notify on failure
-    if: failure()
+    generate: (rng) => {
+      const stepName = pick(rng, [
+        "Notify on failure",
+        "Alert team",
+        "Send status",
+        "Post to Slack",
+        "Report failure",
+        "Ping oncall",
+        "Log failure",
+        "Escalate issue",
+      ]);
+      const condition = pick(rng, ["failure()", "success()", "always()", "cancelled()"]);
+      const envVarName = pick(rng, ["SLACK_WEBHOOK", "DISCORD_WEBHOOK", "TEAMS_WEBHOOK", "NOTIFY_URL"]);
+      const timeoutMinutes = randInt(rng, 1, 10);
+      const json = {
+        steps: [
+          {
+            name: stepName,
+            if: condition,
+            "timeout-minutes": timeoutMinutes,
+            env: { [envVarName]: `\${{ secrets.${envVarName} }}` },
+            run: `curl -X POST $${envVarName}`,
+          },
+        ],
+      };
+      const yaml = `steps:
+  - name: ${stepName}
+    if: ${condition}
+    timeout-minutes: ${timeoutMinutes}
     env:
-      SLACK_WEBHOOK: \${{ secrets.SLACK_WEBHOOK }}
-    run: curl -X POST $SLACK_WEBHOOK`,
+      ${envVarName}: \${{ secrets.${envVarName} }}
+    run: curl -X POST $${envVarName}`;
+      return { json, yaml };
+    },
   },
 
   // ── Wizard: anchors/aliases, merge keys, matrices+conditionals, intrinsic functions, loops ──
@@ -371,126 +534,174 @@ volumes:
     title: "Shared timeout",
     tier: "wizard",
     direction: "yamlToJson",
-    json: {
-      base: { timeout: 30, retries: 3 },
-      service_a: { config: { timeout: 30, retries: 3 } },
-      service_b: { config: { timeout: 30, retries: 3 } },
-    },
-    yaml: `base: &base
-  timeout: 30
-  retries: 3
+    generate: (rng) => {
+      const timeout = randInt(rng, 5, 300);
+      const retries = randInt(rng, 1, 15);
+      const json = {
+        base: { timeout, retries },
+        service_a: { config: { timeout, retries } },
+        service_b: { config: { timeout, retries } },
+      };
+      const yaml = `base: &base
+  timeout: ${timeout}
+  retries: ${retries}
 service_a:
   config: *base
 service_b:
-  config: *base`,
+  config: *base`;
+      return { json, yaml };
+    },
   },
   {
     id: 27,
     title: "Merged environments",
     tier: "wizard",
     direction: "yamlToJson",
-    json: {
-      defaults: { adapter: "postgres", host: "localhost" },
-      development: { adapter: "postgres", host: "localhost", database: "dev_db" },
-      test: { adapter: "postgres", host: "test-host", database: "test_db" },
-    },
-    yaml: `defaults: &defaults
-  adapter: postgres
-  host: localhost
+    generate: (rng) => {
+      const suffixes = ["db", "database", "store", "data"] as const;
+      const adapter = pick(rng, DB_ADAPTERS);
+      const host = pick(rng, ["localhost", "127.0.0.1", "db.internal", "db-primary", "db.local", "db-host"]);
+      const testHost = pick(rng, ["test-host", "test-db", "ci-db", "staging-db", "qa-db", "sandbox-db"]);
+      const devDb = `dev_${pick(rng, suffixes)}`;
+      const testDb = `test_${pick(rng, suffixes)}`;
+      const defaults = { adapter, host };
+      const json = {
+        defaults,
+        development: { ...defaults, database: devDb },
+        test: { ...defaults, database: testDb, host: testHost },
+      };
+      const yaml = `defaults: &defaults
+  adapter: ${adapter}
+  host: ${host}
 development:
   <<: *defaults
-  database: dev_db
+  database: ${devDb}
 test:
   <<: *defaults
-  database: test_db
-  host: test-host`,
+  database: ${testDb}
+  host: ${testHost}`;
+      return { json, yaml };
+    },
   },
   {
     id: 28,
     title: "Matrix with condition",
     tier: "wizard",
     direction: "yamlToJson",
-    json: {
-      env: { CI: true },
-      jobs: {
-        test: {
-          strategy: { matrix: { os: ["ubuntu-latest", "macos-latest"] } },
-          if: "github.event_name == 'pull_request'",
-          env: { CI: true },
+    generate: (rng) => {
+      const osList = pickN(
+        rng,
+        ["ubuntu-latest", "macos-latest", "windows-latest", "ubuntu-22.04", "macos-13", "self-hosted"],
+        3
+      );
+      const eventName = pick(rng, ["pull_request", "push", "workflow_dispatch", "schedule"]);
+      const ciValue = randBool(rng);
+      const jobName = pick(rng, ["test", "build", "verify", "checks"]);
+      const json = {
+        env: { CI: ciValue },
+        jobs: {
+          [jobName]: {
+            strategy: { matrix: { os: osList } },
+            if: `github.event_name == '${eventName}'`,
+            env: { CI: ciValue },
+          },
         },
-      },
-    },
-    yaml: `env: &common_env
-  CI: true
+      };
+      const yaml = `env: &common_env
+  CI: ${ciValue}
 jobs:
-  test:
+  ${jobName}:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-    if: github.event_name == 'pull_request'
-    env: *common_env`,
+        os: [${osList.join(", ")}]
+    if: github.event_name == '${eventName}'
+    env: *common_env`;
+      return { json, yaml };
+    },
   },
   {
     id: 29,
     title: "CloudFormation logic",
     tier: "wizard",
     direction: "yamlToJson",
-    json: {
-      Conditions: {
-        IsProduction: { "Fn::Equals": [{ Ref: "Environment" }, "production"] },
-      },
-      Resources: {
-        Bucket: {
-          Type: "AWS::S3::Bucket",
-          Properties: {
-            BucketName: { "Fn::If": ["IsProduction", "prod-bucket", "dev-bucket"] },
+    generate: (rng) => {
+      const conditionName = pick(rng, ["IsProduction", "IsProd", "IsLive", "IsReleaseEnv"]);
+      const paramName = pick(rng, ["Environment", "Stage", "DeployEnv", "EnvName"]);
+      const trueValue = pick(rng, ["production", "prod", "live"]);
+      const resourceName = pick(rng, ["Bucket", "DataBucket", "AssetBucket", "StorageBucket"]);
+      const trueBucketName = pick(rng, ["prod-bucket", "prod-assets", "live-storage"]);
+      const falseBucketName = pick(rng, ["dev-bucket", "dev-assets", "staging-storage"]);
+      const json = {
+        Conditions: { [conditionName]: { "Fn::Equals": [{ Ref: paramName }, trueValue] } },
+        Resources: {
+          [resourceName]: {
+            Type: "AWS::S3::Bucket",
+            Properties: { BucketName: { "Fn::If": [conditionName, trueBucketName, falseBucketName] } },
           },
         },
-      },
-    },
-    yaml: `Conditions:
-  IsProduction:
+      };
+      const yaml = `Conditions:
+  ${conditionName}:
     Fn::Equals:
-      - Ref: Environment
-      - production
+      - Ref: ${paramName}
+      - ${trueValue}
 Resources:
-  Bucket:
+  ${resourceName}:
     Type: AWS::S3::Bucket
     Properties:
       BucketName:
         Fn::If:
-          - IsProduction
-          - prod-bucket
-          - dev-bucket`,
+          - ${conditionName}
+          - ${trueBucketName}
+          - ${falseBucketName}`;
+      return { json, yaml };
+    },
   },
   {
     id: 30,
     title: "Ansible loop & when",
     tier: "wizard",
     direction: "yamlToJson",
-    json: {
-      tasks: [
-        {
-          name: "Install packages",
-          apt: { name: "{{ item }}", state: "present" },
-          loop: ["nginx", "curl", "git"],
-          when: 'ansible_os_family == "Debian"',
-        },
-      ],
-    },
-    yaml: `tasks:
-  - name: Install packages
-    apt:
+    generate: (rng) => {
+      const packages = pickN(rng, PACKAGE_NAMES, 3);
+      const osFamily = pick(rng, ["Debian", "RedHat", "Suse", "Alpine"]);
+      const taskName = pick(rng, [
+        "Install packages",
+        "Ensure packages present",
+        "Set up dependencies",
+        "Install tools",
+      ]);
+      const module = pick(rng, ["apt", "yum", "package"]);
+      const json = {
+        tasks: [
+          {
+            name: taskName,
+            [module]: { name: "{{ item }}", state: "present" },
+            loop: packages,
+            when: `ansible_os_family == "${osFamily}"`,
+          },
+        ],
+      };
+      const yaml = `tasks:
+  - name: ${taskName}
+    ${module}:
       name: "{{ item }}"
       state: present
     loop:
-      - nginx
-      - curl
-      - git
-    when: ansible_os_family == "Debian"`,
+      - ${packages.join("\n      - ")}
+    when: ansible_os_family == "${osFamily}"`;
+      return { json, yaml };
+    },
   },
 ];
 
-export function sampleForLevel(id: number): Sample | undefined {
-  return samples.find((s) => s.id === id);
+export function resolveLevel(id: number, rng: Rng = Math.random): Sample | undefined {
+  const slot = levelSlots.find((s) => s.id === id);
+  if (!slot) return undefined;
+  const { json, yaml } = slot.generate(rng);
+  return { id: slot.id, title: slot.title, tier: slot.tier, direction: slot.direction, json, yaml };
+}
+
+export function slotForLevel(id: number): LevelSlot | undefined {
+  return levelSlots.find((s) => s.id === id);
 }

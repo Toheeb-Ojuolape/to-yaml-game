@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ProfileProvider } from "../../context/ProfileContext";
 import { PlayScreen } from "./PlayScreen";
-import { sampleForLevel } from "../../data/samples";
+import { jsonToYaml, yamlToJson } from "../../lib/yaml";
 import type { LevelProgress, Profile, RootState } from "../../types";
 
 function seedProfile(overrides: Partial<Profile> = {}) {
@@ -37,11 +37,11 @@ function renderPlayScreen(levelId: number) {
   );
 }
 
-async function typeCorrectAnswer(editor: HTMLElement, user: ReturnType<typeof userEvent.setup>) {
-  await user.click(editor);
-  await user.type(editor, 'business: "acme"');
-  await user.keyboard("{Enter}");
-  await user.type(editor, "is_registered: true");
+// The prompt pane (JsonPane or YamlPane) is always the first <pre> in DOM order — CodeEditor's
+// own syntax-highlight overlay renders a second, later <pre>. Levels are randomly generated per
+// mount, so tests read the actual rendered prompt rather than assuming fixed content.
+function promptText() {
+  return document.querySelector("pre")!.textContent!;
 }
 
 describe("PlayScreen", () => {
@@ -90,7 +90,10 @@ describe("PlayScreen", () => {
     seedProfile();
     renderPlayScreen(1);
 
-    await typeCorrectAnswer(screen.getByRole("textbox"), user);
+    const correctYaml = jsonToYaml(JSON.parse(promptText()));
+    const editor = screen.getByRole("textbox");
+    await user.click(editor);
+    await user.paste(correctYaml);
     await user.click(screen.getByRole("button", { name: /check answer/i }));
 
     expect(await screen.findByText(/level cleared/i)).toBeInTheDocument();
@@ -101,7 +104,10 @@ describe("PlayScreen", () => {
     seedProfile();
     renderPlayScreen(1);
 
-    await typeCorrectAnswer(screen.getByRole("textbox"), user);
+    const correctYaml = jsonToYaml(JSON.parse(promptText()));
+    const editor = screen.getByRole("textbox");
+    await user.click(editor);
+    await user.paste(correctYaml);
     await user.click(screen.getByRole("button", { name: /check answer/i }));
     await screen.findByText(/level cleared/i);
 
@@ -119,7 +125,7 @@ describe("PlayScreen", () => {
 
       expect(screen.getByText(/Level 21/)).toBeInTheDocument();
       expect(screen.getByText("YAML → JSON")).toBeInTheDocument();
-      expect(document.querySelector("pre")?.textContent).toMatch(/name:\s*CI/);
+      expect(promptText()).toMatch(/^name:/);
       expect(screen.getByRole("textbox")).toHaveValue("");
     });
 
@@ -141,9 +147,14 @@ describe("PlayScreen", () => {
       seedProfile({ progress: { 20: cleared } });
       renderPlayScreen(21);
 
+      // Level 21 has no merge keys, so the app's own (default-schema) yamlToJson is a safe,
+      // trusted way to derive the correct JSON answer from the rendered YAML prompt.
+      const parsed = yamlToJson(promptText());
+      expect(parsed.ok).toBe(true);
+
       const editor = screen.getByRole("textbox");
       await user.click(editor);
-      await user.paste(JSON.stringify(sampleForLevel(21)!.json));
+      await user.paste(JSON.stringify(parsed.ok ? parsed.data : null));
       await user.click(screen.getByRole("button", { name: /check answer/i }));
 
       expect(await screen.findByText(/level cleared/i)).toBeInTheDocument();

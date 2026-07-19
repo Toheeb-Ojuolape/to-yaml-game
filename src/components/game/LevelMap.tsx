@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { samples } from "../../data/samples";
+import { levelSlots } from "../../data/samples";
 import type { Tier } from "../../types";
 import { useProfile } from "../../context/ProfileContext";
 import { LevelNode } from "./LevelNode";
@@ -18,13 +18,13 @@ export function LevelMap() {
           {activeProfile ? `Welcome back, ${activeProfile.name}` : "Level map"}
         </h1>
         <p className="text-muted mt-1 text-sm">
-          Translate between JSON and YAML to clear each level. {cleared}/{samples.length} levels cleared.
+          Translate between JSON and YAML to clear each level. {cleared}/{levelSlots.length} levels cleared.
         </p>
         <div className="bg-bg-raised mt-4 h-1.5 w-full overflow-hidden rounded-full">
           <motion.div
             className="bg-accent h-full rounded-full"
             initial={{ width: 0 }}
-            animate={{ width: `${(cleared / samples.length) * 100}%` }}
+            animate={{ width: `${(cleared / levelSlots.length) * 100}%` }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           />
         </div>
@@ -32,7 +32,7 @@ export function LevelMap() {
 
       <div className="space-y-10">
         {TIERS.map((tier) => {
-          const levels = samples.filter((s) => s.tier === tier);
+          const levels = levelSlots.filter((s) => s.tier === tier);
           return (
             <section key={tier}>
               <div className="mb-4 flex items-center gap-3">
@@ -40,12 +40,12 @@ export function LevelMap() {
                 <span className="bg-border h-px flex-1" />
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-                {levels.map((sample, i) => (
+                {levels.map((slot, i) => (
                   <LevelNode
-                    key={sample.id}
-                    sample={sample}
-                    unlocked={isUnlocked(sample.id)}
-                    stars={activeProfile?.progress[sample.id]?.stars}
+                    key={slot.id}
+                    slot={slot}
+                    unlocked={isUnlocked(slot.id)}
+                    stars={activeProfile?.progress[slot.id]?.stars}
                     index={i}
                   />
                 ))}

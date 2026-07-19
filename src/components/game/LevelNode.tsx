@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Lock, Star } from "lucide-react";
+import { ArrowLeftRight, Lock, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Sample } from "../../types";
 import { tierMeta, tierTint } from "./TierBadge";
@@ -32,6 +32,12 @@ export function LevelNode({ sample, unlocked, stars, index }: LevelNodeProps) {
           : "border-border-strong/70 bg-surface cursor-not-allowed"
       }`}
     >
+      {sample.direction === "yamlToJson" && (
+        <span className="text-faint absolute top-2 right-2" title="YAML → JSON">
+          <ArrowLeftRight size={11} />
+        </span>
+      )}
+
       <span
         className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold"
         style={

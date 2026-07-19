@@ -1,4 +1,4 @@
-export type TokenType = "key" | "string" | "number" | "boolean" | "null" | "punct" | "plain";
+export type TokenType = "key" | "string" | "number" | "boolean" | "null" | "punct" | "plain" | "anchor";
 
 export interface Token {
   text: string;
@@ -46,6 +46,7 @@ export const TOKEN_CLASS: Record<TokenType, string> = {
   null: "text-faint",
   punct: "text-muted",
   plain: "text-muted",
+  anchor: "text-syntax-anchor font-semibold",
 };
 
 const YAML_KEY_RE = /^((?:"(?:\\.|[^"\\])*")|(?:'(?:[^']|'')*')|(?:[^:\s#][^:]*?))(:)(\s|$)/;
@@ -108,6 +109,13 @@ function tokenizeYamlValue(value: string): Token[] {
     tokens.push({ text: trimmed, type: "plain" });
   } else if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
     tokens.push(...tokenizeJson(trimmed));
+  } else if (/^[&*]\S+/.test(trimmed)) {
+    // anchor definition (&name) or alias reference (*name), optionally followed by an inline value
+    const m = trimmed.match(/^([&*]\S+)(\s*)([\s\S]*)$/)!;
+    const [, marker, gap, remainder] = m;
+    tokens.push({ text: marker, type: "anchor" });
+    if (gap) tokens.push({ text: gap, type: "plain" });
+    if (remainder) tokens.push(...tokenizeYamlValue(remainder));
   } else if (/^"(?:\\.|[^"\\])*"$/.test(trimmed) || /^'(?:[^']|'')*'$/.test(trimmed)) {
     tokens.push({ text: trimmed, type: "string" });
   } else if (/^(true|false)$/i.test(trimmed)) {

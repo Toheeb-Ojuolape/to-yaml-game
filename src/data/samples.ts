@@ -237,6 +237,258 @@ export const samples: Sample[] = [
       paid: false,
     },
   },
+  // ── Config Reader: real-world GitHub Actions & Docker Compose YAML, shown as YAML → JSON ──
+  {
+    id: 21,
+    title: "CI trigger",
+    tier: "reader",
+    direction: "yamlToJson",
+    json: {
+      name: "CI",
+      on: { push: { branches: ["main"] } },
+      jobs: {
+        build: {
+          "runs-on": "ubuntu-latest",
+          steps: [{ uses: "actions/checkout@v4" }, { run: "npm test" }],
+        },
+      },
+    },
+    yaml: `name: CI
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm test`,
+  },
+  {
+    id: 22,
+    title: "Compose service",
+    tier: "reader",
+    direction: "yamlToJson",
+    json: {
+      version: "3.8",
+      services: {
+        web: {
+          image: "nginx:latest",
+          ports: ["80:80"],
+          environment: { NODE_ENV: "production" },
+        },
+      },
+    },
+    yaml: `version: "3.8"
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    environment:
+      NODE_ENV: production`,
+  },
+  {
+    id: 23,
+    title: "Matrix build",
+    tier: "reader",
+    direction: "yamlToJson",
+    json: {
+      jobs: {
+        test: {
+          "runs-on": "ubuntu-latest",
+          strategy: { matrix: { "node-version": [18, 20, 22] } },
+          steps: [{ uses: "actions/setup-node@v4", with: { "node-version": "${{ matrix.node-version }}" } }],
+        },
+      },
+    },
+    yaml: `jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: \${{ matrix.node-version }}`,
+  },
+  {
+    id: 24,
+    title: "Compose network",
+    tier: "reader",
+    direction: "yamlToJson",
+    json: {
+      services: {
+        api: {
+          image: "myapp/api:1.0",
+          depends_on: ["db"],
+          volumes: ["db_data:/var/lib/data"],
+        },
+        db: { image: "postgres:16" },
+      },
+      volumes: { db_data: null },
+    },
+    yaml: `services:
+  api:
+    image: myapp/api:1.0
+    depends_on:
+      - db
+    volumes:
+      - db_data:/var/lib/data
+  db:
+    image: postgres:16
+volumes:
+  db_data:`,
+  },
+  {
+    id: 25,
+    title: "Conditional step",
+    tier: "reader",
+    direction: "yamlToJson",
+    json: {
+      steps: [
+        {
+          name: "Notify on failure",
+          if: "failure()",
+          env: { SLACK_WEBHOOK: "${{ secrets.SLACK_WEBHOOK }}" },
+          run: "curl -X POST $SLACK_WEBHOOK",
+        },
+      ],
+    },
+    yaml: `steps:
+  - name: Notify on failure
+    if: failure()
+    env:
+      SLACK_WEBHOOK: \${{ secrets.SLACK_WEBHOOK }}
+    run: curl -X POST $SLACK_WEBHOOK`,
+  },
+
+  // ── Wizard: anchors/aliases, merge keys, matrices+conditionals, intrinsic functions, loops ──
+  {
+    id: 26,
+    title: "Shared timeout",
+    tier: "wizard",
+    direction: "yamlToJson",
+    json: {
+      base: { timeout: 30, retries: 3 },
+      service_a: { config: { timeout: 30, retries: 3 } },
+      service_b: { config: { timeout: 30, retries: 3 } },
+    },
+    yaml: `base: &base
+  timeout: 30
+  retries: 3
+service_a:
+  config: *base
+service_b:
+  config: *base`,
+  },
+  {
+    id: 27,
+    title: "Merged environments",
+    tier: "wizard",
+    direction: "yamlToJson",
+    json: {
+      defaults: { adapter: "postgres", host: "localhost" },
+      development: { adapter: "postgres", host: "localhost", database: "dev_db" },
+      test: { adapter: "postgres", host: "test-host", database: "test_db" },
+    },
+    yaml: `defaults: &defaults
+  adapter: postgres
+  host: localhost
+development:
+  <<: *defaults
+  database: dev_db
+test:
+  <<: *defaults
+  database: test_db
+  host: test-host`,
+  },
+  {
+    id: 28,
+    title: "Matrix with condition",
+    tier: "wizard",
+    direction: "yamlToJson",
+    json: {
+      env: { CI: true },
+      jobs: {
+        test: {
+          strategy: { matrix: { os: ["ubuntu-latest", "macos-latest"] } },
+          if: "github.event_name == 'pull_request'",
+          env: { CI: true },
+        },
+      },
+    },
+    yaml: `env: &common_env
+  CI: true
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    if: github.event_name == 'pull_request'
+    env: *common_env`,
+  },
+  {
+    id: 29,
+    title: "CloudFormation logic",
+    tier: "wizard",
+    direction: "yamlToJson",
+    json: {
+      Conditions: {
+        IsProduction: { "Fn::Equals": [{ Ref: "Environment" }, "production"] },
+      },
+      Resources: {
+        Bucket: {
+          Type: "AWS::S3::Bucket",
+          Properties: {
+            BucketName: { "Fn::If": ["IsProduction", "prod-bucket", "dev-bucket"] },
+          },
+        },
+      },
+    },
+    yaml: `Conditions:
+  IsProduction:
+    Fn::Equals:
+      - Ref: Environment
+      - production
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Fn::If:
+          - IsProduction
+          - prod-bucket
+          - dev-bucket`,
+  },
+  {
+    id: 30,
+    title: "Ansible loop & when",
+    tier: "wizard",
+    direction: "yamlToJson",
+    json: {
+      tasks: [
+        {
+          name: "Install packages",
+          apt: { name: "{{ item }}", state: "present" },
+          loop: ["nginx", "curl", "git"],
+          when: 'ansible_os_family == "Debian"',
+        },
+      ],
+    },
+    yaml: `tasks:
+  - name: Install packages
+    apt:
+      name: "{{ item }}"
+      state: present
+    loop:
+      - nginx
+      - curl
+      - git
+    when: ansible_os_family == "Debian"`,
+  },
 ];
 
 export function sampleForLevel(id: number): Sample | undefined {

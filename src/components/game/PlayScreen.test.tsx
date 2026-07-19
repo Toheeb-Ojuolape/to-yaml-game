@@ -4,7 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ProfileProvider } from "../../context/ProfileContext";
 import { PlayScreen } from "./PlayScreen";
-import type { Profile, RootState } from "../../types";
+import { sampleForLevel } from "../../data/samples";
+import type { LevelProgress, Profile, RootState } from "../../types";
 
 function seedProfile(overrides: Partial<Profile> = {}) {
   const profile: Profile = {
@@ -107,5 +108,45 @@ describe("PlayScreen", () => {
     const saved = JSON.parse(localStorage.getItem("to-yaml:v1")!);
     expect(saved.profiles[0].xp).toBe(100);
     expect(saved.profiles[0].progress["1"].stars).toBe(3);
+  });
+
+  describe("a yamlToJson (reverse-direction) level", () => {
+    const cleared: LevelProgress = { stars: 3, bestAttempts: 1, hintsUsed: 0, completedAt: Date.now() };
+
+    it("shows the level's YAML and an empty JSON editor", () => {
+      seedProfile({ progress: { 20: cleared } });
+      renderPlayScreen(21);
+
+      expect(screen.getByText(/Level 21/)).toBeInTheDocument();
+      expect(screen.getByText("YAML → JSON")).toBeInTheDocument();
+      expect(document.querySelector("pre")?.textContent).toMatch(/name:\s*CI/);
+      expect(screen.getByRole("textbox")).toHaveValue("");
+    });
+
+    it("shows an error on an incorrect JSON answer", async () => {
+      const user = userEvent.setup();
+      seedProfile({ progress: { 20: cleared } });
+      renderPlayScreen(21);
+
+      const editor = screen.getByRole("textbox");
+      await user.click(editor);
+      await user.paste('{"name": "wrong"}');
+      await user.click(screen.getByRole("button", { name: /check answer/i }));
+
+      expect(await screen.findByText(/not quite/i)).toBeInTheDocument();
+    });
+
+    it("clears the level on a correct JSON answer", async () => {
+      const user = userEvent.setup();
+      seedProfile({ progress: { 20: cleared } });
+      renderPlayScreen(21);
+
+      const editor = screen.getByRole("textbox");
+      await user.click(editor);
+      await user.paste(JSON.stringify(sampleForLevel(21)!.json));
+      await user.click(screen.getByRole("button", { name: /check answer/i }));
+
+      expect(await screen.findByText(/level cleared/i)).toBeInTheDocument();
+    });
   });
 });

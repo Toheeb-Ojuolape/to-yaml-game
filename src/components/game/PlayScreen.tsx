@@ -4,9 +4,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, CircleAlert, RotateCcw } from "lucide-react";
 import { sampleForLevel } from "../../data/samples";
 import { useProfile } from "../../context/ProfileContext";
-import { jsonToYaml, yamlToJson } from "../../lib/yaml";
+import { jsonToYaml, safeJsonParse, yamlToJson } from "../../lib/yaml";
 import { deepEqual } from "../../lib/deepEqual";
 import { JsonPane } from "./JsonPane";
+import { YamlPane } from "./YamlPane";
 import { CodeEditor } from "../ui/CodeEditor";
 import { HintButton } from "./HintButton";
 import { ResultOverlay } from "./ResultOverlay";
@@ -29,6 +30,7 @@ function PlayScreenInner({ sampleId }: { sampleId: number }) {
   const navigate = useNavigate();
   const sample = sampleForLevel(sampleId)!;
   const { recordLevelComplete } = useProfile();
+  const isReverse = sample.direction === "yamlToJson";
 
   const [input, setInput] = useState("");
   const [attempts, setAttempts] = useState(0);
@@ -37,7 +39,10 @@ function PlayScreenInner({ sampleId }: { sampleId: number }) {
   const [revealedLines, setRevealedLines] = useState<string[]>([]);
   const [result, setResult] = useState<{ stars: 1 | 2 | 3; xp: number } | null>(null);
 
-  const canonicalLines = useMemo(() => jsonToYaml(sample.json).split("\n"), [sample]);
+  const canonicalLines = useMemo(
+    () => (isReverse ? JSON.stringify(sample.json, null, 2) : jsonToYaml(sample.json)).split("\n"),
+    [sample, isReverse]
+  );
   const nextSample = sampleForLevel(sample.id + 1);
 
   function triggerShake() {
@@ -47,21 +52,23 @@ function PlayScreenInner({ sampleId }: { sampleId: number }) {
 
   function handleCheck() {
     if (!input.trim()) {
-      setError("Type your YAML answer first.");
+      setError(`Type your ${isReverse ? "JSON" : "YAML"} answer first.`);
       triggerShake();
       return;
     }
     const nextAttempts = attempts + 1;
     setAttempts(nextAttempts);
 
-    const parsed = yamlToJson(input);
+    const parsed = isReverse ? safeJsonParse(input) : yamlToJson(input);
     if (!parsed.ok) {
       setError(parsed.error);
       triggerShake();
       return;
     }
     if (!deepEqual(parsed.data, sample.json)) {
-      setError("Not quite — check the keys, nesting, and value types against the JSON.");
+      setError(
+        `Not quite — check the keys, nesting, and value types against the ${isReverse ? "YAML" : "JSON"}.`
+      );
       triggerShake();
       return;
     }
@@ -98,8 +105,13 @@ function PlayScreenInner({ sampleId }: { sampleId: number }) {
                 Level {sample.id} &middot; {sample.title}
               </h1>
             </div>
-            <div className="mt-1">
+            <div className="mt-1 flex items-center gap-2">
               <TierBadge tier={sample.tier} />
+              {isReverse && (
+                <span className="border-border text-muted rounded-full border px-2.5 py-1 text-xs font-medium">
+                  YAML &rarr; JSON
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -112,15 +124,25 @@ function PlayScreenInner({ sampleId }: { sampleId: number }) {
 
       <div className="grid gap-4 md:grid-cols-2" style={{ minHeight: "22rem" }}>
         <div>
-          <p className="text-faint mb-2 text-xs font-medium tracking-wide uppercase">JSON</p>
+          <p className="text-faint mb-2 text-xs font-medium tracking-wide uppercase">
+            {isReverse ? "YAML" : "JSON"}
+          </p>
           <div className="h-64 md:h-full">
-            <JsonPane data={sample.json} />
+            {isReverse ? <YamlPane yaml={sample.yaml!} /> : <JsonPane data={sample.json} />}
           </div>
         </div>
         <div>
-          <p className="text-faint mb-2 text-xs font-medium tracking-wide uppercase">Your YAML</p>
+          <p className="text-faint mb-2 text-xs font-medium tracking-wide uppercase">
+            {isReverse ? "Your JSON" : "Your YAML"}
+          </p>
           <div className="h-64 md:h-full">
-            <CodeEditor value={input} onChange={setInput} shake={shake} />
+            <CodeEditor
+              value={input}
+              onChange={setInput}
+              shake={shake}
+              language={isReverse ? "json" : "yaml"}
+              placeholder={isReverse ? '{\n  "key": "value"\n}' : undefined}
+            />
           </div>
         </div>
       </div>

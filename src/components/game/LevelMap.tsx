@@ -5,7 +5,7 @@ import { useProfile } from "../../context/ProfileContext";
 import { LevelNode } from "./LevelNode";
 import { TierBadge } from "./TierBadge";
 
-const TIERS: Tier[] = ["novice", "apprentice", "expert", "master"];
+const TIERS: Tier[] = ["novice", "apprentice", "expert", "master", "reader", "wizard"];
 
 export function LevelMap() {
   const { activeProfile, isUnlocked } = useProfile();
@@ -18,7 +18,7 @@ export function LevelMap() {
           {activeProfile ? `Welcome back, ${activeProfile.name}` : "Level map"}
         </h1>
         <p className="text-muted mt-1 text-sm">
-          Translate the JSON on the left into valid YAML. {cleared}/{samples.length} levels cleared.
+          Translate between JSON and YAML to clear each level. {cleared}/{samples.length} levels cleared.
         </p>
         <div className="bg-bg-raised mt-4 h-1.5 w-full overflow-hidden rounded-full">
           <motion.div

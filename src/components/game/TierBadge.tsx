@@ -5,6 +5,8 @@ const TIER_META: Record<Tier, { label: string; color: string }> = {
   apprentice: { label: "Apprentice", color: "var(--color-tier-apprentice)" },
   expert: { label: "Expert", color: "var(--color-tier-expert)" },
   master: { label: "Master", color: "var(--color-tier-master)" },
+  reader: { label: "Config Reader", color: "var(--color-tier-reader)" },
+  wizard: { label: "Wizard", color: "var(--color-tier-wizard)" },
 };
 
 export function tierMeta(tier: Tier) {

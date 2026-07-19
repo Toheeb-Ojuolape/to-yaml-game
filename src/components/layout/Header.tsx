@@ -10,11 +10,11 @@ export function Header() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-bg/85 backdrop-blur-md">
+    <header className="border-border bg-bg/85 sticky top-0 z-40 border-b backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-6">
-          <NavLink to="/play" className="flex items-center gap-2 text-text no-underline">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-soft text-accent">
+          <NavLink to="/play" className="text-text flex items-center gap-2 no-underline">
+            <span className="bg-accent-soft text-accent flex h-8 w-8 items-center justify-center rounded-lg">
               <Braces size={18} strokeWidth={2.25} />
             </span>
             <span className="font-mono text-[15px] font-semibold tracking-tight">
@@ -58,10 +58,10 @@ export function Header() {
           {activeProfile && (
             <button
               onClick={() => switchProfile("")}
-              className="flex items-center gap-2 rounded-full border border-border bg-surface py-1 pl-1 pr-3 text-sm text-text transition-colors hover:border-border-strong cursor-pointer"
+              className="border-border bg-surface text-text hover:border-border-strong flex cursor-pointer items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-sm transition-colors"
               title="Switch profile"
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent-soft text-base">
+              <span className="bg-accent-soft flex h-7 w-7 items-center justify-center rounded-full text-base">
                 {activeProfile.avatarEmoji}
               </span>
               <span className="hidden max-w-[8rem] truncate font-medium sm:inline">{activeProfile.name}</span>
@@ -71,7 +71,7 @@ export function Header() {
         </div>
       </div>
 
-      <nav className="flex items-center gap-1 border-t border-border px-4 py-1.5 sm:hidden">
+      <nav className="border-border flex items-center gap-1 border-t px-4 py-1.5 sm:hidden">
         <HeaderLink to="/play">Play</HeaderLink>
         <HeaderLink to="/converter">Converter</HeaderLink>
       </nav>
@@ -95,7 +95,7 @@ function HeaderLink({ to, children }: { to: string; children: React.ReactNode })
           {isActive && (
             <motion.span
               layoutId="nav-underline"
-              className="absolute inset-x-2 -bottom-[7px] h-[2px] rounded-full bg-accent sm:-bottom-2"
+              className="bg-accent absolute inset-x-2 -bottom-[7px] h-[2px] rounded-full sm:-bottom-2"
             />
           )}
         </>
@@ -106,9 +106,9 @@ function HeaderLink({ to, children }: { to: string; children: React.ReactNode })
 
 function Stat({ icon, value, label }: { icon: React.ReactNode; value: number; label: string }) {
   return (
-    <div className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 text-xs text-muted">
+    <div className="border-border bg-surface text-muted flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs">
       <span className="text-accent">{icon}</span>
-      <span className="font-mono-num font-semibold text-text">{value}</span>
+      <span className="font-mono-num text-text font-semibold">{value}</span>
       <span>{label}</span>
     </div>
   );

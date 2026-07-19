@@ -21,12 +21,22 @@ function indentForNewLine(currentLine: string, language: "json" | "yaml") {
   return opensBlock ? `${indent}  ` : indent;
 }
 
-export function CodeEditor({ value, onChange, shake, disabled, placeholder, language = "yaml" }: CodeEditorProps) {
+export function CodeEditor({
+  value,
+  onChange,
+  shake,
+  disabled,
+  placeholder,
+  language = "yaml",
+}: CodeEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const gutterRef = useRef<HTMLDivElement>(null);
   const highlightRef = useRef<HTMLPreElement>(null);
   const lineCount = useMemo(() => value.split("\n").length, [value]);
-  const tokens = useMemo(() => (language === "json" ? tokenizeJson(value) : tokenizeYaml(value)), [value, language]);
+  const tokens = useMemo(
+    () => (language === "json" ? tokenizeJson(value) : tokenizeYaml(value)),
+    [value, language]
+  );
 
   function handleScroll() {
     const { current: textarea } = textareaRef;
@@ -82,13 +92,13 @@ export function CodeEditor({ value, onChange, shake, disabled, placeholder, lang
 
   return (
     <div
-      className={`flex h-full overflow-hidden rounded-xl border bg-bg-raised transition-colors ${
+      className={`bg-bg-raised flex h-full overflow-hidden rounded-xl border transition-colors ${
         shake ? "animate-shake border-error/60" : "border-border focus-within:border-accent/50"
       }`}
     >
       <div
         ref={gutterRef}
-        className="select-none overflow-hidden border-r border-border px-3 py-4 text-right font-mono text-[13px] leading-6 text-faint"
+        className="border-border text-faint overflow-hidden border-r px-3 py-4 text-right font-mono text-[13px] leading-6 select-none"
       >
         {Array.from({ length: lineCount }, (_, i) => (
           <div key={i}>{i + 1}</div>
@@ -98,7 +108,7 @@ export function CodeEditor({ value, onChange, shake, disabled, placeholder, lang
         <pre
           ref={highlightRef}
           aria-hidden
-          className="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words px-4 py-4 font-mono text-[13px] leading-6"
+          className="pointer-events-none absolute inset-0 overflow-hidden px-4 py-4 font-mono text-[13px] leading-6 break-words whitespace-pre-wrap"
         >
           <code>
             {tokens.map((t, i) => (
@@ -120,7 +130,7 @@ export function CodeEditor({ value, onChange, shake, disabled, placeholder, lang
           onChange={(e) => onChange(e.target.value)}
           onScroll={handleScroll}
           onKeyDown={handleKeyDown}
-          className="absolute inset-0 resize-none whitespace-pre-wrap break-words bg-transparent px-4 py-4 font-mono text-[13px] leading-6 text-transparent caret-text outline-none placeholder:text-faint/70 disabled:opacity-50"
+          className="caret-text placeholder:text-faint/70 absolute inset-0 resize-none bg-transparent px-4 py-4 font-mono text-[13px] leading-6 break-words whitespace-pre-wrap text-transparent outline-none disabled:opacity-50"
         />
         {!disabled && value.trim() && (
           <button
@@ -128,7 +138,7 @@ export function CodeEditor({ value, onChange, shake, disabled, placeholder, lang
             onClick={handleFormat}
             title="Format"
             aria-label="Format"
-            className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-md border border-border bg-bg-raised/90 text-muted backdrop-blur-sm transition-colors hover:border-border-strong hover:text-accent cursor-pointer"
+            className="border-border bg-bg-raised/90 text-muted hover:border-border-strong hover:text-accent absolute top-2 right-2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border backdrop-blur-sm transition-colors"
           >
             <WandSparkles size={13} />
           </button>

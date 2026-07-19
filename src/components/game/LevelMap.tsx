@@ -14,15 +14,15 @@ export function LevelMap() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-10">
-        <h1 className="text-xl font-semibold tracking-tight text-text sm:text-2xl">
+        <h1 className="text-text text-xl font-semibold tracking-tight sm:text-2xl">
           {activeProfile ? `Welcome back, ${activeProfile.name}` : "Level map"}
         </h1>
-        <p className="mt-1 text-sm text-muted">
+        <p className="text-muted mt-1 text-sm">
           Translate the JSON on the left into valid YAML. {cleared}/{samples.length} levels cleared.
         </p>
-        <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-bg-raised">
+        <div className="bg-bg-raised mt-4 h-1.5 w-full overflow-hidden rounded-full">
           <motion.div
-            className="h-full rounded-full bg-accent"
+            className="bg-accent h-full rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${(cleared / samples.length) * 100}%` }}
             transition={{ duration: 0.6, ease: "easeOut" }}
@@ -37,7 +37,7 @@ export function LevelMap() {
             <section key={tier}>
               <div className="mb-4 flex items-center gap-3">
                 <TierBadge tier={tier} />
-                <span className="h-px flex-1 bg-border" />
+                <span className="bg-border h-px flex-1" />
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
                 {levels.map((sample, i) => (

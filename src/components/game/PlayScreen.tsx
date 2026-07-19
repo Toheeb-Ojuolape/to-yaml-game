@@ -68,7 +68,12 @@ function PlayScreenInner({ sampleId }: { sampleId: number }) {
 
     setError(null);
     setShake(false);
-    const { entry, xpGained } = recordLevelComplete(sample.id, sample.tier, nextAttempts, revealedLines.length);
+    const { entry, xpGained } = recordLevelComplete(
+      sample.id,
+      sample.tier,
+      nextAttempts,
+      revealedLines.length
+    );
     setResult({ stars: entry.stars, xp: xpGained });
   }
 
@@ -83,13 +88,13 @@ function PlayScreenInner({ sampleId }: { sampleId: number }) {
         <div className="flex items-center gap-3">
           <Link
             to="/play"
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted no-underline transition-colors hover:border-border-strong hover:text-text"
+            className="border-border text-muted hover:border-border-strong hover:text-text flex h-9 w-9 items-center justify-center rounded-lg border no-underline transition-colors"
           >
             <ArrowLeft size={16} />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base font-semibold text-text sm:text-lg">
+              <h1 className="text-text text-base font-semibold sm:text-lg">
                 Level {sample.id} &middot; {sample.title}
               </h1>
             </div>
@@ -99,7 +104,7 @@ function PlayScreenInner({ sampleId }: { sampleId: number }) {
           </div>
         </div>
         {attempts > 0 && (
-          <span className="text-xs text-faint">
+          <span className="text-faint text-xs">
             {attempts} attempt{attempts === 1 ? "" : "s"}
           </span>
         )}
@@ -107,13 +112,13 @@ function PlayScreenInner({ sampleId }: { sampleId: number }) {
 
       <div className="grid gap-4 md:grid-cols-2" style={{ minHeight: "22rem" }}>
         <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-faint">JSON</p>
+          <p className="text-faint mb-2 text-xs font-medium tracking-wide uppercase">JSON</p>
           <div className="h-64 md:h-full">
             <JsonPane data={sample.json} />
           </div>
         </div>
         <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-faint">Your YAML</p>
+          <p className="text-faint mb-2 text-xs font-medium tracking-wide uppercase">Your YAML</p>
           <div className="h-64 md:h-full">
             <CodeEditor value={input} onChange={setInput} shake={shake} />
           </div>
@@ -123,10 +128,11 @@ function PlayScreenInner({ sampleId }: { sampleId: number }) {
       <AnimatePresence>
         {error && (
           <motion.div
+            role="alert"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-4 flex items-start gap-2 overflow-hidden rounded-lg border border-error/30 bg-error-soft px-3 py-2.5 text-sm text-error"
+            className="border-error/30 bg-error-soft text-error mt-4 flex items-start gap-2 overflow-hidden rounded-lg border px-3 py-2.5 text-sm"
           >
             <CircleAlert size={16} className="mt-0.5 shrink-0" />
             <span>{error}</span>
@@ -135,13 +141,17 @@ function PlayScreenInner({ sampleId }: { sampleId: number }) {
       </AnimatePresence>
 
       <div className="mt-4">
-        <HintButton revealedLines={revealedLines} totalLines={canonicalLines.length} onReveal={handleReveal} />
+        <HintButton
+          revealedLines={revealedLines}
+          totalLines={canonicalLines.length}
+          onReveal={handleReveal}
+        />
       </div>
 
       <div className="mt-5 flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
           onClick={() => setInput("")}
-          className="inline-flex items-center justify-center gap-1.5 text-sm text-faint transition-colors hover:text-muted cursor-pointer"
+          className="text-faint hover:text-muted inline-flex cursor-pointer items-center justify-center gap-1.5 text-sm transition-colors"
         >
           <RotateCcw size={13} /> Clear
         </button>

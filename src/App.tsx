@@ -9,7 +9,7 @@ function App() {
   return (
     <ProfileProvider>
       <BrowserRouter>
-        <div className="min-h-screen bg-bg">
+        <div className="bg-bg min-h-screen">
           <Header />
           <main>
             <Routes>

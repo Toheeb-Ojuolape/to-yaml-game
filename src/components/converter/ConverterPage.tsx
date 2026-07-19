@@ -58,14 +58,14 @@ export function ConverterPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-6">
-        <h1 className="text-xl font-semibold tracking-tight text-text sm:text-2xl">Converter</h1>
-        <p className="mt-1 text-sm text-muted">
+        <h1 className="text-text text-xl font-semibold tracking-tight sm:text-2xl">Converter</h1>
+        <p className="text-muted mt-1 text-sm">
           A standalone JSON &harr; YAML tool. Nothing here affects your game progress.
         </p>
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="inline-flex rounded-lg border border-border bg-surface p-1">
+        <div className="border-border bg-surface inline-flex rounded-lg border p-1">
           <PillButton active={direction === "toYaml"} onClick={() => selectDirection("toYaml")}>
             JSON &rarr; YAML
           </PillButton>
@@ -76,7 +76,7 @@ export function ConverterPage() {
         <button
           onClick={handleSwap}
           disabled={!result.ok || !result.text}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted transition-colors hover:border-border-strong hover:text-text disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+          className="border-border text-muted hover:border-border-strong hover:text-text inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           title="Swap direction using current output"
         >
           <ArrowLeftRight size={15} />
@@ -85,7 +85,7 @@ export function ConverterPage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-faint">
+          <p className="text-faint mb-2 text-xs font-medium tracking-wide uppercase">
             {direction === "toYaml" ? "JSON input" : "YAML input"}
           </p>
           <div className="h-72">
@@ -100,13 +100,13 @@ export function ConverterPage() {
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-xs font-medium uppercase tracking-wide text-faint">
+            <p className="text-faint text-xs font-medium tracking-wide uppercase">
               {direction === "toYaml" ? "YAML output" : "JSON output"}
             </p>
             <button
               onClick={handleCopy}
               disabled={!result.ok || !result.text}
-              className="inline-flex items-center gap-1.5 text-xs text-faint transition-colors hover:text-text disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+              className="text-faint hover:text-text inline-flex cursor-pointer items-center gap-1.5 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-40"
             >
               {copied ? <Check size={13} className="text-success" /> : <Copy size={13} />}
               {copied ? "Copied" : "Copy"}
@@ -114,7 +114,10 @@ export function ConverterPage() {
           </div>
           <Card className="h-72 overflow-auto p-0">
             {result.ok ? (
-              <pre className="h-full whitespace-pre-wrap break-words px-4 py-4 font-mono text-[13px] leading-6 text-text">
+              <pre
+                data-testid="converter-output"
+                className="text-text h-full px-4 py-4 font-mono text-[13px] leading-6 break-words whitespace-pre-wrap"
+              >
                 {result.text ? (
                   <code>
                     {outputTokens.map((t, i) => (
@@ -129,9 +132,10 @@ export function ConverterPage() {
               </pre>
             ) : (
               <motion.div
+                role="alert"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-start gap-2 p-4 text-sm text-error"
+                className="text-error flex items-start gap-2 p-4 text-sm"
               >
                 <CircleAlert size={16} className="mt-0.5 shrink-0" />
                 <span>{result.error}</span>
@@ -156,13 +160,11 @@ function PillButton({
   return (
     <button
       onClick={onClick}
-      className={`relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer ${
+      className={`relative cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
         active ? "text-[#1a1204]" : "text-muted hover:text-text"
       }`}
     >
-      {active && (
-        <motion.span layoutId="converter-pill" className="absolute inset-0 rounded-md bg-accent" />
-      )}
+      {active && <motion.span layoutId="converter-pill" className="bg-accent absolute inset-0 rounded-md" />}
       <span className="relative">{children}</span>
     </button>
   );

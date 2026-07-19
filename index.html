@@ -7,6 +7,22 @@
     <meta name="theme-color" content="#0b0d10" />
     <meta name="description" content="Learn YAML by translating real JSON, one level at a time." />
     <title>to-yaml — learn YAML by playing</title>
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("to-yaml:theme");
+          var theme =
+            stored === "light" || stored === "dark"
+              ? stored
+              : window.matchMedia("(prefers-color-scheme: light)").matches
+                ? "light"
+                : "dark";
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

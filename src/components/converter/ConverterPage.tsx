@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeftRight, Check, CircleAlert, Copy } from "lucide-react";
 import { jsonToYaml, safeJsonParse, yamlToJson } from "../../lib/yaml";
+import { TOKEN_CLASS, tokenizeJson, tokenizeYaml } from "../../lib/highlight";
 import { CodeEditor } from "../ui/CodeEditor";
 import { Card } from "../ui/Card";
 
@@ -30,6 +31,11 @@ export function ConverterPage() {
     if (!parsed.ok) return { ok: false as const, error: parsed.error };
     return { ok: true as const, text: JSON.stringify(parsed.data, null, 2) };
   }, [source, direction]);
+
+  const outputTokens = useMemo(() => {
+    if (!result.ok || !result.text) return [];
+    return direction === "toYaml" ? tokenizeYaml(result.text) : tokenizeJson(result.text);
+  }, [result, direction]);
 
   function selectDirection(next: Direction) {
     if (next === direction) return;
@@ -87,6 +93,7 @@ export function ConverterPage() {
               value={source}
               onChange={setSource}
               placeholder={direction === "toYaml" ? '{\n  "key": "value"\n}' : "key: value"}
+              language={direction === "toYaml" ? "json" : "yaml"}
             />
           </div>
         </div>
@@ -107,8 +114,18 @@ export function ConverterPage() {
           </div>
           <Card className="h-72 overflow-auto p-0">
             {result.ok ? (
-              <pre className="h-full whitespace-pre px-4 py-4 font-mono text-[13px] leading-6 text-text">
-                {result.text || <span className="text-faint">Output will appear here.</span>}
+              <pre className="h-full whitespace-pre-wrap break-words px-4 py-4 font-mono text-[13px] leading-6 text-text">
+                {result.text ? (
+                  <code>
+                    {outputTokens.map((t, i) => (
+                      <span key={i} className={TOKEN_CLASS[t.type]}>
+                        {t.text}
+                      </span>
+                    ))}
+                  </code>
+                ) : (
+                  <span className="text-faint">Output will appear here.</span>
+                )}
               </pre>
             ) : (
               <motion.div

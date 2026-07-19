@@ -36,3 +36,89 @@ export function tokenizeJson(pretty: string): Token[] {
   }
   return tokens;
 }
+
+export const TOKEN_CLASS: Record<TokenType, string> = {
+  key: "text-syntax-key",
+  string: "text-syntax-string",
+  number: "text-syntax-number",
+  boolean: "text-syntax-boolean",
+  null: "text-faint",
+  punct: "text-muted",
+  plain: "text-muted",
+};
+
+const YAML_KEY_RE = /^((?:"(?:\\.|[^"\\])*")|(?:'(?:[^']|'')*')|(?:[^:\s#][^:]*?))(:)(\s|$)/;
+const YAML_DASHES_RE = /^(-\s+)+/;
+
+export function tokenizeYaml(text: string): Token[] {
+  const lines = text.split("\n");
+  const tokens: Token[] = [];
+  lines.forEach((line, i) => {
+    tokens.push(...tokenizeYamlLine(line));
+    if (i < lines.length - 1) tokens.push({ text: "\n", type: "plain" });
+  });
+  return tokens;
+}
+
+function tokenizeYamlLine(line: string): Token[] {
+  const tokens: Token[] = [];
+
+  const indent = line.match(/^\s*/)?.[0] ?? "";
+  if (indent) tokens.push({ text: indent, type: "plain" });
+  let rest = line.slice(indent.length);
+
+  if (rest.startsWith("#")) {
+    tokens.push({ text: rest, type: "plain" });
+    return tokens;
+  }
+
+  const dashes = rest.match(YAML_DASHES_RE)?.[0];
+  if (dashes) {
+    tokens.push({ text: dashes, type: "punct" });
+    rest = rest.slice(dashes.length);
+  } else if (rest === "-") {
+    tokens.push({ text: rest, type: "punct" });
+    return tokens;
+  }
+
+  if (!rest) return tokens;
+
+  const keyMatch = rest.match(YAML_KEY_RE);
+  if (keyMatch) {
+    const [, key, colon] = keyMatch;
+    tokens.push({ text: key, type: "key" });
+    tokens.push({ text: colon, type: "punct" });
+    tokens.push(...tokenizeYamlValue(rest.slice(key.length + 1)));
+    return tokens;
+  }
+
+  tokens.push(...tokenizeYamlValue(rest));
+  return tokens;
+}
+
+function tokenizeYamlValue(value: string): Token[] {
+  const leadingSpace = value.match(/^\s*/)?.[0] ?? "";
+  const trimmed = value.slice(leadingSpace.length);
+  const tokens: Token[] = [];
+  if (leadingSpace) tokens.push({ text: leadingSpace, type: "plain" });
+  if (!trimmed) return tokens;
+
+  if (trimmed.startsWith("#")) {
+    tokens.push({ text: trimmed, type: "plain" });
+  } else if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+    tokens.push(...tokenizeJson(trimmed));
+  } else if (/^"(?:\\.|[^"\\])*"$/.test(trimmed) || /^'(?:[^']|'')*'$/.test(trimmed)) {
+    tokens.push({ text: trimmed, type: "string" });
+  } else if (/^(true|false)$/i.test(trimmed)) {
+    tokens.push({ text: trimmed, type: "boolean" });
+  } else if (/^(null|~)$/i.test(trimmed)) {
+    tokens.push({ text: trimmed, type: "null" });
+  } else if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(trimmed)) {
+    tokens.push({ text: trimmed, type: "number" });
+  } else if (/^[|>][+-]?\d*$/.test(trimmed)) {
+    tokens.push({ text: trimmed, type: "punct" });
+  } else {
+    tokens.push({ text: trimmed, type: "string" });
+  }
+  return tokens;
+}

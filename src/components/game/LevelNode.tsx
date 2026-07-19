@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Lock, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Sample } from "../../types";
-import { tierMeta } from "./TierBadge";
+import { tierMeta, tierTint } from "./TierBadge";
 
 interface LevelNodeProps {
   sample: Sample;
@@ -36,7 +36,7 @@ export function LevelNode({ sample, unlocked, stars, index }: LevelNodeProps) {
         className="flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold"
         style={
           unlocked
-            ? { background: `${color}1f`, color, boxShadow: `0 0 0 1.5px ${color}55` }
+            ? { background: tierTint(color, 16), color, boxShadow: `0 0 0 1.5px ${tierTint(color, 45)}` }
             : { background: "var(--color-bg-raised)", color: "var(--color-muted)", boxShadow: "0 0 0 1.5px var(--color-border-strong)" }
         }
       >

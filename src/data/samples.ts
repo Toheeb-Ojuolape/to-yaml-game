@@ -6,7 +6,7 @@ export const samples: Sample[] = [
     id: 1,
     title: "User handle",
     tier: "novice",
-    json: { username: "arclight", active: true },
+    json: { business: "acme", is_registered: true },
   },
   {
     id: 2,

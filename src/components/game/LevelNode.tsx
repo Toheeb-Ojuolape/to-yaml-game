@@ -28,8 +28,8 @@ export function LevelNode({ sample, unlocked, stars, index }: LevelNodeProps) {
       onClick={() => navigate(`/play/${sample.id}`)}
       className={`group relative flex w-full flex-col items-center gap-2 rounded-2xl border p-4 text-center transition-colors ${
         unlocked
-          ? "cursor-pointer border-border bg-surface hover:border-border-strong hover:bg-surface-hover"
-          : "cursor-not-allowed border-border-strong/70 bg-surface"
+          ? "border-border bg-surface hover:border-border-strong hover:bg-surface-hover cursor-pointer"
+          : "border-border-strong/70 bg-surface cursor-not-allowed"
       }`}
     >
       <span
@@ -37,10 +37,22 @@ export function LevelNode({ sample, unlocked, stars, index }: LevelNodeProps) {
         style={
           unlocked
             ? { background: tierTint(color, 16), color, boxShadow: `0 0 0 1.5px ${tierTint(color, 45)}` }
-            : { background: "var(--color-bg-raised)", color: "var(--color-muted)", boxShadow: "0 0 0 1.5px var(--color-border-strong)" }
+            : {
+                background: "var(--color-bg-raised)",
+                color: "var(--color-muted)",
+                boxShadow: "0 0 0 1.5px var(--color-border-strong)",
+              }
         }
       >
-        {unlocked ? (completed ? <Star size={17} fill={color} strokeWidth={0} /> : sample.id) : <Lock size={15} />}
+        {unlocked ? (
+          completed ? (
+            <Star size={17} fill={color} strokeWidth={0} />
+          ) : (
+            sample.id
+          )
+        ) : (
+          <Lock size={15} />
+        )}
       </span>
 
       <span className={`line-clamp-1 text-xs font-medium ${unlocked ? "text-text" : "text-muted"}`}>

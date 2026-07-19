@@ -5,9 +5,7 @@ export function jsonToYaml(data: unknown): string {
   return convert(data);
 }
 
-export type YamlParseResult =
-  | { ok: true; data: unknown }
-  | { ok: false; error: string };
+export type YamlParseResult = { ok: true; data: unknown } | { ok: false; error: string };
 
 export function yamlToJson(text: string): YamlParseResult {
   try {

@@ -11,17 +11,17 @@ export function HintButton({ revealedLines, totalLines, onReveal }: HintButtonPr
   const exhausted = revealedLines.length >= totalLines;
 
   return (
-    <div className="rounded-xl border border-border bg-bg-raised p-3">
+    <div className="border-border bg-bg-raised rounded-xl border p-3">
       <button
         onClick={onReveal}
         disabled={exhausted}
-        className="flex w-full items-center justify-between text-left text-sm text-muted transition-colors hover:text-text disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer disabled:hover:text-muted"
+        className="text-muted hover:text-text disabled:hover:text-muted flex w-full cursor-pointer items-center justify-between text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
       >
         <span className="flex items-center gap-2">
           <Lightbulb size={15} className="text-accent" />
           {revealedLines.length === 0 ? "Reveal a line (costs XP)" : "Reveal another line"}
         </span>
-        <span className="font-mono-num text-xs text-faint">
+        <span className="font-mono-num text-faint text-xs">
           {revealedLines.length}/{totalLines}
         </span>
       </button>
@@ -32,7 +32,7 @@ export function HintButton({ revealedLines, totalLines, onReveal }: HintButtonPr
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-2 overflow-hidden whitespace-pre-wrap rounded-lg bg-black/30 px-3 py-2 font-mono text-[12px] leading-5 text-accent"
+            className="text-accent mt-2 overflow-hidden rounded-lg bg-black/30 px-3 py-2 font-mono text-[12px] leading-5 whitespace-pre-wrap"
           >
             {revealedLines.join("\n")}
           </motion.pre>

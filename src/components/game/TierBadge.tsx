@@ -20,7 +20,11 @@ export function TierBadge({ tier }: { tier: Tier }) {
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium"
-      style={{ borderColor: tierTint(meta.color, 40), color: meta.color, background: tierTint(meta.color, 14) }}
+      style={{
+        borderColor: tierTint(meta.color, 40),
+        color: meta.color,
+        background: tierTint(meta.color, 14),
+      }}
     >
       <span className="h-1.5 w-1.5 rounded-full" style={{ background: meta.color }} />
       {meta.label}

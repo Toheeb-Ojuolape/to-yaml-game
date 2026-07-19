@@ -31,18 +31,18 @@ export function CreateProfileForm({ onCancel, showCancel }: { onCancel: () => vo
         {showCancel && (
           <button
             onClick={onCancel}
-            className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted hover:text-text cursor-pointer"
+            className="text-muted hover:text-text mb-4 inline-flex cursor-pointer items-center gap-1.5 text-sm"
           >
             <ArrowLeft size={15} /> Back
           </button>
         )}
 
-        <h2 className="text-lg font-semibold text-text">Create a profile</h2>
-        <p className="mt-1 text-sm text-muted">Your progress is saved on this device only.</p>
+        <h2 className="text-text text-lg font-semibold">Create a profile</h2>
+        <p className="text-muted mt-1 text-sm">Your progress is saved on this device only.</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-6">
           <div>
-            <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-faint">
+            <label className="text-faint mb-2 block text-xs font-medium tracking-wide uppercase">
               Display name
             </label>
             <input
@@ -51,22 +51,24 @@ export function CreateProfileForm({ onCancel, showCancel }: { onCancel: () => vo
               onChange={(e) => setName(e.target.value)}
               maxLength={20}
               placeholder="e.g. Tobi"
-              className="w-full rounded-lg border border-border bg-bg-raised px-3.5 py-2.5 text-sm text-text placeholder:text-faint outline-none transition-colors focus:border-accent/60"
+              className="border-border bg-bg-raised text-text placeholder:text-faint focus:border-accent/60 w-full rounded-lg border px-3.5 py-2.5 text-sm transition-colors outline-none"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-faint">Avatar</label>
+            <label className="text-faint mb-2 block text-xs font-medium tracking-wide uppercase">
+              Avatar
+            </label>
             <div className="flex flex-wrap gap-2">
               {AVATARS.map((emoji) => (
                 <button
                   type="button"
                   key={emoji}
                   onClick={() => setAvatar(emoji)}
-                  className={`flex h-10 w-10 items-center justify-center rounded-full text-lg transition-all cursor-pointer ${
+                  className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-lg transition-all ${
                     avatar === emoji
-                      ? "bg-accent-soft ring-2 ring-accent scale-105"
-                      : "bg-bg-raised ring-1 ring-border hover:ring-border-strong"
+                      ? "bg-accent-soft ring-accent scale-105 ring-2"
+                      : "bg-bg-raised ring-border hover:ring-border-strong ring-1"
                   }`}
                 >
                   {emoji}
@@ -76,7 +78,7 @@ export function CreateProfileForm({ onCancel, showCancel }: { onCancel: () => vo
           </div>
 
           <div>
-            <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-faint">
+            <label className="text-faint mb-2 block text-xs font-medium tracking-wide uppercase">
               Accent color
             </label>
             <div className="flex flex-wrap gap-2">
@@ -86,7 +88,7 @@ export function CreateProfileForm({ onCancel, showCancel }: { onCancel: () => vo
                   key={h}
                   onClick={() => setHue(h)}
                   aria-label={`Hue ${h}`}
-                  className="h-8 w-8 rounded-full transition-transform cursor-pointer"
+                  className="h-8 w-8 cursor-pointer rounded-full transition-transform"
                   style={{
                     background: `hsl(${h} 70% 45%)`,
                     outline: hue === h ? `2px solid hsl(${h} 70% 65%)` : "none",

@@ -33,7 +33,7 @@ export function ResultOverlay({ stars, xp, hasNext, onNext, onBackToMap }: Resul
           {burstOffsets.map((o, i) => (
             <motion.span
               key={i}
-              className="absolute h-1.5 w-1.5 rounded-full bg-accent"
+              className="bg-accent absolute h-1.5 w-1.5 rounded-full"
               initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
               animate={{ x: o.x, y: o.y, opacity: 0, scale: 0 }}
               transition={{ duration: 0.7, delay: 0.05 * i, ease: "easeOut" }}
@@ -45,7 +45,7 @@ export function ResultOverlay({ stars, xp, hasNext, onNext, onBackToMap }: Resul
           initial={{ scale: 0.4, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.1 }}
-          className="relative mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-success-soft text-success"
+          className="bg-success-soft text-success relative mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full"
         >
           <svg viewBox="0 0 24 24" className="h-8 w-8">
             <motion.path
@@ -62,7 +62,7 @@ export function ResultOverlay({ stars, xp, hasNext, onNext, onBackToMap }: Resul
           </svg>
         </motion.div>
 
-        <h2 className="relative text-lg font-semibold text-text">Level cleared</h2>
+        <h2 className="text-text relative text-lg font-semibold">Level cleared</h2>
 
         <div className="relative mt-3 flex items-center justify-center gap-1.5">
           {[1, 2, 3].map((n) => (
@@ -83,8 +83,8 @@ export function ResultOverlay({ stars, xp, hasNext, onNext, onBackToMap }: Resul
           ))}
         </div>
 
-        <p className="relative mt-3 text-sm text-muted">
-          +<span className="font-mono-num font-semibold text-accent">{xp}</span> XP earned
+        <p className="text-muted relative mt-3 text-sm">
+          +<span className="font-mono-num text-accent font-semibold">{xp}</span> XP earned
         </p>
 
         <div className="relative mt-7 flex flex-col gap-2">
@@ -93,7 +93,7 @@ export function ResultOverlay({ stars, xp, hasNext, onNext, onBackToMap }: Resul
               Next level
             </Button>
           ) : (
-            <p className="rounded-lg bg-accent-soft px-3 py-2 text-xs font-medium text-accent">
+            <p className="bg-accent-soft text-accent rounded-lg px-3 py-2 text-xs font-medium">
               You've cleared every level!
             </p>
           )}

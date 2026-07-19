@@ -80,4 +80,25 @@ describe("tokenizeYaml", () => {
     const tokens = tokenizeYaml("http://example.com");
     expect(tokens.some((t) => t.type === "key")).toBe(false);
   });
+
+  it("classifies an anchor definition distinctly from a plain string", () => {
+    const tokens = tokenizeYaml("base: &defaults");
+    expect(findType(tokens, "&defaults")).toBe("anchor");
+  });
+
+  it("classifies an alias reference distinctly from a plain string", () => {
+    const tokens = tokenizeYaml("config: *defaults");
+    expect(findType(tokens, "*defaults")).toBe("anchor");
+  });
+
+  it("reconstructs anchor/alias/merge-key YAML exactly", () => {
+    const yaml =
+      "defaults: &defaults\n  adapter: postgres\ndevelopment:\n  <<: *defaults\n  database: dev_db";
+    expect(reconstruct(tokenizeYaml(yaml))).toBe(yaml);
+  });
+
+  it("classifies the merge key '<<' as a key", () => {
+    const tokens = tokenizeYaml("<<: *defaults");
+    expect(findType(tokens, "<<")).toBe("key");
+  });
 });

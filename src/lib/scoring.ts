@@ -5,6 +5,8 @@ const TIER_MULTIPLIER: Record<Tier, number> = {
   apprentice: 1.25,
   expert: 1.5,
   master: 2,
+  reader: 1.75,
+  wizard: 2.5,
 };
 
 const BASE_XP = 100;

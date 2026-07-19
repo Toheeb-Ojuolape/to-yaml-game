@@ -1,16 +1,5 @@
 import { useMemo } from "react";
-import { tokenizeJson } from "../../lib/highlight";
-import type { TokenType } from "../../lib/highlight";
-
-const TOKEN_CLASS: Record<TokenType, string> = {
-  key: "text-syntax-key",
-  string: "text-syntax-string",
-  number: "text-syntax-number",
-  boolean: "text-syntax-boolean",
-  null: "text-faint",
-  punct: "text-muted",
-  plain: "text-muted",
-};
+import { TOKEN_CLASS, tokenizeJson } from "../../lib/highlight";
 
 export function JsonPane({ data }: { data: unknown }) {
   const pretty = useMemo(() => JSON.stringify(data, null, 2), [data]);
